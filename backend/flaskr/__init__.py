@@ -7,6 +7,7 @@ from werkzeug import exceptions as _exceptions
 from models import setup_db, Question, Category
 import json
 import math
+import sys
 
 QUESTIONS_PER_PAGE = 10
 
@@ -22,7 +23,7 @@ def create_app(test_config=None):
 
   # Setup CORS header
   '''
-  @TODO: Use the after_request decorator to set Access-Control-Allow
+  DONE: @TODO: Use the after_request decorator to set Access-Control-Allow
   '''
   @app.after_request
   def after_request(response):
@@ -37,7 +38,7 @@ def create_app(test_config=None):
     return result[start:end]
 
   '''
-  @TODO:
+  DONE: @TODO:
   Create an endpoint to handle GET requests
   for all available categories.
   '''
@@ -53,7 +54,7 @@ def create_app(test_config=None):
 
 
   '''
-  @TODO:
+  DONE: @TODO:
   Create an endpoint to handle GET requests for questions,
   including pagination (every 10 questions).
   This endpoint should return a list of questions,
@@ -99,9 +100,22 @@ def create_app(test_config=None):
   TEST: When you click the trash icon next to a question, the question will be removed.
   This removal will persist in the database and when you refresh the page.
   '''
+  @app.route('/api/questions/<int:id>', methods=['DELETE'])
+  def delete_question(id):
+    question = Question.query.filter(Question.id == id).one_or_none()
+    try:
+      if question is not None:
+        question.delete()
+
+      return jsonify({
+        'message': 'Question deleted successfully'
+      })
+    except:
+      print(sys.exc_info())
+      abort(400, 'Failed to delete question with requested id')
 
   '''
-  @TODO:
+  @TODO: DONE
   Create an endpoint to POST a new question,
   which will require the question and answer text,
   category, and difficulty score.
@@ -148,6 +162,24 @@ def create_app(test_config=None):
   only question that include that string within their question.
   Try using the word "title" to start.
   '''
+  @app.route('/api/questions/search', methods=['POST'])
+  def search_questions():
+    data = request.get_json()
+    searchTerm = data['searchTerm']
+    page = 1
+    queryResult = Question.query.filter(Question.question.ilike('%{}%'.format(searchTerm))).all()
+    total_questions = len(queryResult)
+    questionsPerPage = getPaginatedResult(queryResult, page)
+
+    questions = [
+      question.format() for question in questionsPerPage
+    ]
+
+    return jsonify({
+      'questions': questions,
+      'total_questions': total_questions,
+      'current_category': None
+    })
 
   '''
   @TODO:

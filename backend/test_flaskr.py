@@ -176,6 +176,73 @@ class TriviaTestCase(unittest.TestCase):
 
         category.delete()
 
+
+    def test_search_questions_matching_word(self):
+        category = Category("Science")
+        category.insert()
+        question = Question('Who moved my cheese', 'Not Me!', "1", category.id)
+        question.category = category
+        question.insert()
+
+        response = self.client().post('/api/questions/search', json={ 'searchTerm': 'cheese'})
+        data = response.get_json()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['total_questions'], 1)
+
+        question.delete()
+        category.delete()
+
+    def test_search_questions_non_matching_word(self):
+        category = Category("Science")
+        category.insert()
+        question = Question('Who moved my cheese', 'Not Me!', "1", category.id)
+        question.category = category
+        question.insert()
+
+        response = self.client().post('/api/questions/search', json={ 'searchTerm': 'happy'})
+        data = response.get_json()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['total_questions'], 0)
+
+        question.delete()
+        category.delete()
+
+
+    def test_delete_question_valid_id(self):
+        category = Category("Science")
+        category.insert()
+        question = Question('Who moved my cheese', 'Not Me!', "1", category.id)
+        question.category = category
+        question.insert()
+
+        response = self.client().delete('/api/questions/{}'.format(question.id))
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 200)
+        dbEntry = Question.query.filter(Question.id == question.id).one_or_none()
+        self.assertEqual(dbEntry, None)
+
+        question.delete()
+        category.delete
+
+    def test_delete_question_invalid_id(self):
+        category = Category("Science")
+        category.insert()
+        question = Question('Who moved my cheese', 'Not Me!', "1", category.id)
+        question.category = category
+        question.insert()
+
+        response = self.client().delete('/api/questions/1')
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 200)
+        dbEntry = Question.query.filter(Question.id == question.id).one_or_none()
+        self.assertNotEqual(dbEntry, None)
+        self.assertEqual(dbEntry.question, question.question)
+
+        question.delete()
+        category.delete
+
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
