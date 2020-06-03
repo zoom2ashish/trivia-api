@@ -113,7 +113,7 @@ class QuestionView extends Component {
     if(action === 'DELETE') {
       if(window.confirm('are you sure you want to delete the question?')) {
         $.ajax({
-          url: `/api/questions/${id}`, //TODO: update request URL
+          url: `/api/questions/${id}`, //DONE: TODO: update request URL
           type: "DELETE",
           success: (result) => {
             this.getQuestions();
