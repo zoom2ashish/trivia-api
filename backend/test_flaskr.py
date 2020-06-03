@@ -50,7 +50,7 @@ class TriviaTestCase(unittest.TestCase):
             question.delete()
 
     """
-    TODO
+    DONE: TODO
     Write at least one test for each test for successful operation and for expected errors.
     """
     def test_get_questions_no_records(self):
@@ -243,6 +243,62 @@ class TriviaTestCase(unittest.TestCase):
         question.delete()
         category.delete
 
+    def test_get_random_question(self):
+        category = Category("Science")
+        category.insert()
+        question = Question('Who moved my cheese', 'Not Me!', "1", category.id)
+        question.category = category
+        question.insert()
+
+        response = self.client().post('/api/quizzes', json={
+            'previous_questions': [],
+            'quiz_category': None
+        })
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data.get('question').get('question'), question.question)
+
+        question.delete()
+        category.delete()
+
+    def test_get_random_question_for_last_question(self):
+        category = Category("Science")
+        category.insert()
+        question = Question('Who moved my cheese', 'Not Me!', "1", category.id)
+        question.category = category
+        question.insert()
+
+        response = self.client().post('/api/quizzes', json={
+            'previous_questions': [question.id],
+            'quiz_category': None
+        })
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data.get('question'), None)
+
+        question.delete()
+        category.delete()
+
+    def test_get_random_question_handle_category(self):
+        category = Category("Science")
+        category.insert()
+        question = Question('Who moved my cheese', 'Not Me!', "1", category.id)
+        question.category = category
+        question.insert()
+
+        response = self.client().post('/api/quizzes', json={
+            'previous_questions': [],
+            'quiz_category': category.id
+        })
+        data = response.get_json()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data.get('question').get('question'), question.question)
+
+        question.delete()
+        category.delete()
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
