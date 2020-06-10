@@ -26,9 +26,9 @@ This will install all of the required packages we selected within the `requireme
 
 - [Flask](http://flask.pocoo.org/)  is a lightweight backend microservices framework. Flask is required to handle requests and responses.
 
-- [SQLAlchemy](https://www.sqlalchemy.org/) is the Python SQL toolkit and ORM we'll use handle the lightweight sqlite database. You'll primarily work in app.py and can reference models.py. 
+- [SQLAlchemy](https://www.sqlalchemy.org/) is the Python SQL toolkit and ORM we'll use handle the lightweight sqlite database. You'll primarily work in app.py and can reference models.py.
 
-- [Flask-CORS](https://flask-cors.readthedocs.io/en/latest/#) is the extension we'll use to handle cross origin requests from our frontend server. 
+- [Flask-CORS](https://flask-cors.readthedocs.io/en/latest/#) is the extension we'll use to handle cross origin requests from our frontend server.
 
 ## Database Setup
 With Postgres running, restore a database using the trivia.psql file provided. From the backend folder in terminal run:
@@ -50,45 +50,299 @@ flask run
 
 Setting the `FLASK_ENV` variable to `development` will detect file changes and restart the server automatically.
 
-Setting the `FLASK_APP` variable to `flaskr` directs flask to use the `flaskr` directory and the `__init__.py` file to find the application. 
+Setting the `FLASK_APP` variable to `flaskr` directs flask to use the `flaskr` directory and the `__init__.py` file to find the application.
 
-## Tasks
-
-One note before you delve into your tasks: for each endpoint you are expected to define the endpoint and response data. The frontend will be a plentiful resource because it is set up to expect certain endpoints and response data formats already. You should feel free to specify endpoints in your own way; if you do so, make sure to update the frontend or you will get some unexpected behavior. 
-
-1. Use Flask-CORS to enable cross-domain requests and set response headers. 
-2. Create an endpoint to handle GET requests for questions, including pagination (every 10 questions). This endpoint should return a list of questions, number of total questions, current category, categories. 
-3. Create an endpoint to handle GET requests for all available categories. 
-4. Create an endpoint to DELETE question using a question ID. 
-5. Create an endpoint to POST a new question, which will require the question and answer text, category, and difficulty score. 
-6. Create a POST endpoint to get questions based on category. 
-7. Create a POST endpoint to get questions based on a search term. It should return any questions for whom the search term is a substring of the question. 
-8. Create a POST endpoint to get questions to play the quiz. This endpoint should take category and previous question parameters and return a random questions within the given category, if provided, and that is not one of the previous questions. 
-9. Create error handlers for all expected errors including 400, 404, 422 and 500. 
-
-REVIEW_COMMENT
+## Object Types
+### Category
+  ```
+  {
+    id: Integer;
+    type: String;
+    questions: Question[];
+  }
+  ```
+### Question
 ```
-This README is missing documentation of your endpoints. Below is an example for your endpoint to get all categories. Please use it as a reference for creating your documentation and resubmit your code. 
+{
+  id: Integer;
+  question: String,
+  difficulty: String,
+  category_id: String,
+  category: Category
+}
+```
 
-Endpoints
-GET '/categories'
-GET ...
-POST ...
-DELETE ...
+## Endpoints
 
-GET '/categories'
+### Get Categories
 - Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
 - Request Arguments: None
-- Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs. 
-{'1' : "Science",
-'2' : "Art",
-'3' : "Geography",
-'4' : "History",
-'5' : "Entertainment",
-'6' : "Sports"}
-
+- Returns: An object with a single key, categories, that contains a object of id: category_string
+```
+GET /api/categories
+```
+#### Response
+```
+{
+  categories: { id: category_string},
+  total_categories: Interger
+}
+```
+#### Example Response:
+```
+{
+  'categories': {
+    '1' : "Science",
+    '2' : "Art",
+    '3' : "Geography",
+    '4' : "History",
+    '5' : "Entertainment",
+    '6' : "Sports"
+  },
+  'total_categories': 6
+}
 ```
 
+### Get Questions
+- Fetch paginated list of questions and dictionary of categories. Result is divided in to default page size of 10.
+- Returns 400 Invalid Page Number if
+```
+GET /api/questions
+```
+#### Request Params
+
+Param | Type | Optional? | Default Value
+--- | --- | --- | ---
+page | Integer | Yes | 1
+
+#### Response
+```
+{
+  'questions': Question[];
+  'total_questions': Integer,
+  'categories': { id: category_string},
+  'total_categories': Integer
+}
+```
+
+#### Sample Response
+```
+{
+  'questions': [
+    {
+      'id': 1,
+      'question': 'Where is TajMahal?',
+      'answer': 'India',
+      'difficulty': 1,
+      'category_id': 3
+    },
+    {
+      'id': 2,
+      'question': 'What is full name of MLK?',
+      'answer': 'Martin Luther King',
+      'difficulty': 1,
+      'category_id': 4
+    }
+  ],
+  'total_questions': 2,
+  'categories': {
+    '1' : "Science",
+    '2' : "Art",
+    '3' : "Geography",
+    '4' : "History",
+    '5' : "Entertainment",
+    '6' : "Sports"
+  },
+  'total_categories': 6
+}
+```
+
+#### Errors
+Code | Description | Condition
+--- | --- | ---
+400 | Invalid Page Number | When 'page' query param value exceeds maximum number of pages
+
+
+### Delete Question
+- Finds the question by question id and removes it from database
+```
+DELETE /api/questions/<int:id>
+```
+#### Response
+```
+{
+  'message': String;
+}
+```
+#### Example Response
+```
+{
+  'message': 'Question deleted successfully'
+}
+```
+#### Errors
+Code | Description | Condition
+--- | --- | ---
+400 | Failed to delete | When enable to delete question
+
+### Create Question
+- Create question with given configuration.
+- Returns question if created successfully
+```
+POST /api/questions
+```
+#### Request Body
+```
+{
+  'question': String;
+  'answer': String;
+  'difficulty: 'Integer';
+  'category': Integer;
+}
+```
+#### Response
+```
+{
+  'id': Integer;
+  'question': String;
+  'answer': String;
+  'difficulty: 'Integer';
+  'category': Integer;
+}
+```
+#### Example Response
+```
+{
+  'id': 1,
+  'question': 'Who moved my cheese?',
+  'answer': 'Thanos',
+  'difficulty': 5,
+  'category': 1
+}
+```
+#### Errors
+Code | Description | Condition
+--- | --- | ---
+400 | Invalid question data | When anyone of the field is empty
+400 | Category not found | When category with specified category id not found
+500 | Failed to save question | When system is unable to save question
+
+### Search Questions
+- Fetch questions containing search term.
+```
+GET /api/questions/search
+```
+#### Request Body
+```
+{
+  'searchTerm': String;
+}
+```
+#### Response
+```
+{
+  'questons': Question[];
+  'total_questions': Integer,
+  'current_category': Integer
+}
+```
+#### Example Resonse
+```
+{
+  'questions': [
+    {
+      'id': 1,
+      'question': 'Where is TajMahal?',
+      'answer': 'India',
+      'difficulty': 1,
+      'category_id': 3
+    },
+    {
+      'id': 2,
+      'question': 'What is full name of MLK?',
+      'answer': 'Martin Luther King',
+      'difficulty': 1,
+      'category_id': 4
+    }
+  ],
+  'total_questions': 2,
+  'current_category': 1
+}
+```
+
+### Get Questions By Category
+- Fetch questions filtered by specified category id
+```
+GET /api/categories/<int:id>/questions
+```
+#### Request Params
+Param | Type | Optional? | Default Value | Description
+--- | --- | --- | --- | ---
+id | Integer | No | | Category Id
+
+#### Response
+```
+{
+  'questons': Question[];
+  'total_questions': Integer,
+  'current_category': Integer
+}
+```
+#### Example Resonse
+```
+{
+  'questions': [
+    {
+      'id': 1,
+      'question': 'Where is TajMahal?',
+      'answer': 'India',
+      'difficulty': 1,
+      'category_id': 3
+    },
+    {
+      'id': 2,
+      'question': 'What is full name of MLK?',
+      'answer': 'Martin Luther King',
+      'difficulty': 1,
+      'category_id': 4
+    }
+  ],
+  'total_questions': 2,
+  'current_category': 1
+}
+```
+
+### Get Random Question By Category
+- Fetch randomly selected question from the list of questions for given category and not already served
+- 'previous_questions' in request body specified questions already served. Hence, these questions will be excluded while picking next question
+```
+POST /api/quizzes
+```
+#### Request Body
+```
+{
+  'previous_questions': Integer[];
+  'quiz_category': Integer
+}
+```
+#### Response
+```
+{
+  'question': String;
+}
+```
+#### Example Response
+```
+{
+  'question': {
+    'id': 1,
+    'question': 'Where is TajMahal?',
+    'answer': 'India',
+    'difficulty': 1,
+    'category_id': 3
+  }
+}
+```
 
 ## Testing
 To run the tests, run
