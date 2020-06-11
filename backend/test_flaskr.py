@@ -17,7 +17,8 @@ class TriviaTestCase(unittest.TestCase):
         self.ctx = self.app.app_context()
         self.client = self.app.test_client
         self.database_name = "trivia_test"
-        self.database_path = "postgres://{}@{}/{}".format('postgres', 'localhost:5432', self.database_name)
+        self.database_path = "postgres://{}@{}/{}".format(
+            'postgres', 'localhost:5432', self.database_name)
         setup_db(self.app, self.database_path)
 
         # binds the app to the current context
@@ -39,7 +40,8 @@ class TriviaTestCase(unittest.TestCase):
     def insert_questions_for_test(self, category, count=15):
         questions = []
         for i in range(count):
-            question = Question('Q%s' % i, 'A%s' % i, category.id, randint(1,4))
+            question = Question('Q%s' % i, 'A%s' %
+                                i, category.id, randint(1, 4))
             question.category = category
             question.insert()
             questions.append(question)
@@ -51,8 +53,10 @@ class TriviaTestCase(unittest.TestCase):
 
     """
     DONE: TODO
-    Write at least one test for each test for successful operation and for expected errors.
+    Write at least one test for each test for successful operation and
+    for expected errors.
     """
+
     def test_get_questions_no_records(self):
         response = self.client().get('/api/questions')
         data = response.get_json()
@@ -89,13 +93,13 @@ class TriviaTestCase(unittest.TestCase):
         self.delete_questions(questions)
         category.delete()
 
-
     def test_get_questions_by_category_valid_category(self):
         category = Category("Science")
         category.insert()
         questions = self.insert_questions_for_test(category, 15)
 
-        response = self.client().get('/api/categories/{}/questions'.format(category.id))
+        response = self.client().get(
+            '/api/categories/{}/questions'.format(category.id))
         data = response.get_json()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data['total_questions'], len(questions))
@@ -137,7 +141,6 @@ class TriviaTestCase(unittest.TestCase):
         question.delete()
         category.delete()
 
-
     def test_add_question_invalid_category_in_payload(self):
         response = self.client().post('/api/questions', json={
             'question': 'Who moved my cheese?',
@@ -176,7 +179,6 @@ class TriviaTestCase(unittest.TestCase):
 
         category.delete()
 
-
     def test_search_questions_matching_word(self):
         category = Category("Science")
         category.insert()
@@ -184,7 +186,8 @@ class TriviaTestCase(unittest.TestCase):
         question.category = category
         question.insert()
 
-        response = self.client().post('/api/questions/search', json={ 'searchTerm': 'cheese'})
+        response = self.client().post('/api/questions/search',
+                                      json={'searchTerm': 'cheese'})
         data = response.get_json()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data['total_questions'], 1)
@@ -199,7 +202,8 @@ class TriviaTestCase(unittest.TestCase):
         question.category = category
         question.insert()
 
-        response = self.client().post('/api/questions/search', json={ 'searchTerm': 'happy'})
+        response = self.client().post('/api/questions/search',
+                                      json={'searchTerm': 'happy'})
         data = response.get_json()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data['total_questions'], 0)
@@ -207,19 +211,22 @@ class TriviaTestCase(unittest.TestCase):
         question.delete()
         category.delete()
 
-
     def test_delete_question_valid_id(self):
         category = Category("Science")
         category.insert()
-        question = Question('Who moved my cheese', 'Not Me!', "1", category.id)
+        question = Question(
+            'Who moved my cheese', 'Not Me!', "1",
+            category.id)
         question.category = category
         question.insert()
 
-        response = self.client().delete('/api/questions/{}'.format(question.id))
+        response = self.client().delete(
+            '/api/questions/{}'.format(question.id))
         data = response.get_json()
 
         self.assertEqual(response.status_code, 200)
-        dbEntry = Question.query.filter(Question.id == question.id).one_or_none()
+        dbEntry = Question.query.filter(
+            Question.id == question.id).one_or_none()
         self.assertEqual(dbEntry, None)
 
         question.delete()
@@ -236,7 +243,8 @@ class TriviaTestCase(unittest.TestCase):
         data = response.get_json()
 
         self.assertEqual(response.status_code, 200)
-        dbEntry = Question.query.filter(Question.id == question.id).one_or_none()
+        dbEntry = Question.query.filter(
+            Question.id == question.id).one_or_none()
         self.assertNotEqual(dbEntry, None)
         self.assertEqual(dbEntry.question, question.question)
 
@@ -257,7 +265,8 @@ class TriviaTestCase(unittest.TestCase):
         data = response.get_json()
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(data.get('question').get('question'), question.question)
+        self.assertEqual(data.get('question').get(
+            'question'), question.question)
 
         question.delete()
         category.delete()
@@ -295,10 +304,13 @@ class TriviaTestCase(unittest.TestCase):
         data = response.get_json()
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(data.get('question').get('question'), question.question)
+        self.assertEqual(data.get('question').get(
+            'question'), question.question)
 
         question.delete()
         category.delete()
+
+
 # Make the tests conveniently executable
 if __name__ == "__main__":
     unittest.main()
